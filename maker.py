@@ -3,21 +3,22 @@
 # maker.py: The Deemo notechart maker. Accepts data from time.txt and write the json notechart.
 
 import json
+import os
 import sys
 def readdata():
 	global notesdata,speed,linksdata
 	infile=open('time.txt','r')
 	rawfiledata=infile.read()[:-1]
-	while (a.find('\n\t')>=0) or (a.find('\t\n')>=0):
-		a=a.replace('\n\t','\n')
-		a=a.replace('\t\n','\n')
+	while (a.find('%s\t'%enter)>=0) or (a.find('\t%s'%enter)>=0):
+		a=a.replace('%s\t'%enter,enter)
+		a=a.replace('\t%s'%enter,enter)
 	for i in range(0,len(rawfiledata)):
 		while rawfiledata[i].endswith('\t'):rawfiledata[i]=rawfiledata[i][:-1]
-	notesdata=rawfiledata[0].split('\n')
+	notesdata=rawfiledata[0].split(enter)
 	for i in range(0,len(notesdata)):
 		while notesdata[i].endswith('\t'):notesdata[i]=notesdata[i][:-1]
 	speed=float(rawfiledata[1])
-	linksdata=rawfiledata[2].split('\n')
+	linksdata=rawfiledata[2].split(enter)
 	infile.close()
 def parsetone():	#转换音调的字符表达为数字编号，并将d p v三个参数写入sounds列表中的字典
 	global sounds
@@ -114,6 +115,10 @@ def writejson():
 	jsonfile.close()
 	
 #主程序开始
+if os.name=='nt':enter='\n'
+else:enter='\r\n'
+#Since this tool deals with Windows text files, it's necessary
+#to write this for proper processing in *nix.
 readdata()
 parsedata()
 checkpianotone()
