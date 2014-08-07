@@ -20,7 +20,7 @@ def readdata():
 	speed=float(rawfiledata[1])
 	linksdata=rawfiledata[2].split(enter)
 	infile.close()
-def parsetone():	#×ª»»Òôµ÷µÄ×Ö·û±í´ïÎªÊı×Ö±àºÅ£¬²¢½«d p vÈı¸ö²ÎÊıĞ´ÈësoundsÁĞ±íÖĞµÄ×Öµä
+def parsetone():	#×ª»»Òôµ÷µÄ×Ö·û±í´ïÎªÊı×Ö±àºÅ£¬²¢½«d p v wËÄ¸ö²ÎÊıĞ´ÈësoundsÁĞ±íÖĞµÄ×Öµä
 	global sounds
 	sounds=[]
 	for i in range(0,len(pianotonedata)):
@@ -44,7 +44,7 @@ def parsetone():	#×ª»»Òôµ÷µÄ×Ö·û±í´ïÎªÊı×Ö±àºÅ£¬²¢½«d p vÈı¸ö²ÎÊıĞ´ÈësoundsÁĞ±íÖ
 				tone=(int(tonestr[-1])+1)*12+offset
 				if len(tonestr)==3:tone+=1 if tonestr[1]=='#' else -1
 			pianotonedata[i][3*j+1]=int(tone)
-			soundsofanote.insert(i,{'d': float(pianotonedata[i][3*j]),'p':pianotonedata[i][3*j+1],'v':int(pianotonedata[i][3*j+2])})
+			soundsofanote.insert(i,{'d': float(pianotonedata[i][4*j]),'p':pianotonedata[i][4*j+1],'v':int(pianotonedata[i][4*j+2]),'w':float(pianotonedata[i][4*j+3])})
 		sounds.insert(i,soundsofanote)
 
 def parsedata():
