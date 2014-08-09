@@ -12,8 +12,19 @@ def writedata(filename):
 	bpm='%.6f'%Decimal(raw_input('Provide BPM value for %s: '%filename))
 	page_shift='%.6f'%Decimal(raw_input('Provide PAGE_SHIFT value for %s: '%filename))
 	page_size='%.6f'%Decimal(raw_input('Provide PAGE_SIZE value for %s: '%filename))
-	f=open(filename)
-	f.write()
+	f=open(filename,'w')
+	f.write('VERSION 2%sBPM %s%sPAGE_SHIFT %s%sPAGE_SIZE %s%s'%(enter,bpm,enter,page_shift,enter,page_size,enter))
+	for i in range(0,len(a['notes'])):
+		curnote=a['notes'][i]
+		if 'pos' in curnote.keys():
+			if curnote['pos']<=2:
+				f.write('NOTE\t%d\t%.6f\t%.6f\t%.6f%s'%(int(curnote['$id'])-1,curnote['_time'],Decimal(curnote['pos'])/Decimal(4)+Decimal(1),0,enter))
+	for i in range(0,len(a['links'])):
+		curlink=a['links'][i]
+		f.write('LINK ')
+		for j in range(0,len(curlink['notes'])):
+			f.write('%s '%curlink['notes'][j]['$ref'])
+		f.write(enter)
 
 infile=[]
 outfile=[]
