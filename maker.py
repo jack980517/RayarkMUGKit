@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-#coding:gbk
+#coding:utf8
 # maker.py: The Deemo notechart maker. Accepts data from time.txt and write the json notechart.
 
 import json
@@ -7,32 +7,30 @@ import os
 import sys
 def readdata():
 	global notesdata,speed,linksdata
-	infile=open('time.txt','r')
+	infile=open('time.csv','r')
 	rawfiledata=infile.read()[:-1]
-	while (a.find('%s\t'%enter)>=0) or (a.find('\t%s'%enter)>=0):
-		a=a.replace('%s\t'%enter,enter)
-		a=a.replace('\t%s'%enter,enter)
-	for i in range(0,len(rawfiledata)):
-		while rawfiledata[i].endswith('\t'):rawfiledata[i]=rawfiledata[i][:-1]
-	notesdata=rawfiledata[0].split(enter)
-	for i in range(0,len(notesdata)):
-		while notesdata[i].endswith('\t'):notesdata[i]=notesdata[i][:-1]
+	while (rawfiledata.find('\n\t')>=0) or (rawfiledata.find('\t\n')>=0):
+		rawfiledata=rawfiledata.replace('\n\t','\n')
+		rawfiledata=rawfiledata.replace('\t\n','\n')
+	rawfiledata=rawfiledata.split('\n\n') #Separate raw file data into 3 parts: NOTES, SPEED, LINKS
+	rawfiledata[0]=rawfiledata[0].split('\n') #Seperate NOTES
+	notesdata=rawfiledata[0] #Ready to use
 	speed=float(rawfiledata[1])
 	linksdata=rawfiledata[2].split(enter)
 	infile.close()
-def parsetone():	#×ª»»Òôµ÷µÄ×Ö·û±í´ïÎªÊı×Ö±àºÅ£¬²¢½«d p v wËÄ¸ö²ÎÊıĞ´ÈësoundsÁĞ±íÖĞµÄ×Öµä
+def parsetone():	#Convert character notation of notes into number, and write d, p, v, w to a dict in list 'sounds'
 	global sounds
 	sounds=[]
 	for i in range(0,len(pianotonedata)):
 		soundsofanote=[]
-		for j in range(0,len(pianotonedata[i])/3):
-			tone=pianotonedata[i][3*j+1]
-			try:tone=int(tone)	#ÊÔÍ¼×ª»»ÎªÊı×Ö
-			except:		#Èç¹û²»ÊÇÊı×Ö
+		for j in range(0,len(pianotonedata[i])/4):
+			tone=pianotonedata[i][4*j+1]
+			try:tone=int(tone)	#Try to convert to number
+			except:		#If it's not a number
 				tonestr=tone
-				flag=checktone(tonestr)	#¼ì²éÊÇ·ñÎªºÏ·¨Òô·û¸ñÊ½
+				flag=checktone(tonestr)	#Check if it's in valid format
 				if not flag:
-					print 'µÚ',i+1,'ĞĞµÚ',j+1,'¸öÒôµ÷ÖµÓĞÎÊÌâ£¬Çë¼ì²éºóÔÙÔËĞĞ±¾³ÌĞò£¡'
+					print 'Line',i+1,'sound',j+1,'has problems, check before running this program!'
 					exit()
 				if tone[0]=='c':offset=0
 				if tone[0]=='d':offset=2
@@ -44,7 +42,15 @@ def parsetone():	#×ª»»Òôµ÷µÄ×Ö·û±í´ïÎªÊı×Ö±àºÅ£¬²¢½«d p v wËÄ¸ö²ÎÊıĞ´ÈësoundsÁĞ±
 				tone=(int(tonestr[-1])+1)*12+offset
 				if len(tonestr)==3:tone+=1 if tonestr[1]=='#' else -1
 			pianotonedata[i][3*j+1]=int(tone)
-			soundsofanote.insert(i,{'d': float(pianotonedata[i][4*j]),'p':pianotonedata[i][4*j+1],'v':int(pianotonedata[i][4*j+2]),'w':float(pianotonedata[i][4*j+3])})
+			tmp={}
+			for i in range(0,4-len(pianotonedata[i])%4):
+				pianotonedata[i].insert(len(pianotonedata[i]),'')
+			d,p,v,w=pianotonedata[i][4*j:4*j+4]
+			if d!='':tmp['d']=d
+			if p!='':tmp['p']=p
+			if v!='':tmp['v']=v
+			if w!='':tmp['w']=w
+			soundsofanote.insert(i,tmp)
 		sounds.insert(i,soundsofanote)
 
 def parsedata():
@@ -59,45 +65,45 @@ def parsedata():
 		linksdata[i]=linksdata[i].split('\t')
 	parsetone()
 	
-#notesdata[i][j]µÄ½á¹¹£º
-#iÎªÒô·û±àºÅ
-#j	Êı¾İÃû³Æ
-#0	³öÏÖÊ±µÄÃëÊı
-#1	Î»ÖÃ[-2,2]
-#2	Òô·û´óĞ¡
-#3	¸ÖÇÙÒô³ÖĞøÊ±¼ä
-#4	¸ÖÇÙÒôÒô·û±àºÅ£¬60ÎªÖĞÑëC£¨C4£©
-#5	¸ÖÇÙÒôÒôÁ¿[0,127]
-#6	¸ÖÇÙÒô³ÖĞøÊ±¼ä
-#7	¡­¡­
-def checktone(tonename):	#¼ì²é¸ÖÇÙÒôµÄÒôµ÷
-	if 1<len(tonename)<4:	#³¤¶ÈÎª2»ò3
-		if (ord(tonename[0].lower()) in range(97,104)) and (ord(tonename[-1]) in range(49,56)):	#µÚÒ»Î»Îª×ÖÄ¸ÇÒ×îºóÒ»Î»Îª1µ½7Êı×Ö
+#notesdata[i][j]çš„ç»“æ„ï¼š
+#iä¸ºéŸ³ç¬¦ç¼–å·
+#j	æ•°æ®åç§°
+#0	å‡ºç°æ—¶çš„ç§’æ•°
+#1	ä½ç½®[-2,2]
+#2	éŸ³ç¬¦å¤§å°
+#3	é’¢ç´éŸ³æŒç»­æ—¶é—´
+#4	é’¢ç´éŸ³éŸ³ç¬¦ç¼–å·ï¼Œ60ä¸ºä¸­å¤®Cï¼ˆC4ï¼‰
+#5	é’¢ç´éŸ³éŸ³é‡[0,127]
+#6	é’¢ç´éŸ³æŒç»­æ—¶é—´
+#7	â€¦â€¦
+def checktone(tonename):	#æ£€æŸ¥é’¢ç´éŸ³çš„éŸ³è°ƒ
+	if 1<len(tonename)<4:	#é•¿åº¦ä¸º2æˆ–3
+		if (ord(tonename[0].lower()) in range(97,104)) and (ord(tonename[-1]) in range(49,56)):	#ç¬¬ä¸€ä½ä¸ºå­—æ¯ä¸”æœ€åä¸€ä½ä¸º1åˆ°7æ•°å­—
 			if len(tonename)==3:
-				return (tonename[1]=='#' or tonename[1]=='b');#³¤¶ÈÎª3µÄ£¬µÚ¶şÎ»±ØĞëÎªÉı»ò½µ±ê¼Ç
+				return (tonename[1]=='#' or tonename[1]=='b');#é•¿åº¦ä¸º3çš„ï¼Œç¬¬äºŒä½å¿…é¡»ä¸ºå‡æˆ–é™æ ‡è®°
 			return True;
 	return False;
-def checkvolume():	#¼ì²éÒôÁ¿Öµ
+def checkvolume():	#æ£€æŸ¥éŸ³é‡å€¼
 	for i in range(0,len(pianotonedata)):
-		for j in range(0,len(pianotonedata[i])/3):
+		for j in range(0,len(pianotonedata[i])/4):
 			try:
-				vol=int(pianotonedata[i][3*j+2])
+				vol=int(pianotonedata[i][4*j+2])
 				if not 0<=vol<=127:raise ValueError()
 			except:
-				print 'µÚ',i+1,'ĞĞµÄÒôÁ¿ÖµÓĞÎÊÌâ£¬Çë¼ì²éºóÔÙÔËĞĞ±¾³ÌĞò£¡'
+				print 'ç¬¬',i+1,'è¡Œçš„éŸ³é‡å€¼æœ‰é—®é¢˜ï¼Œè¯·æ£€æŸ¥åå†è¿è¡Œæœ¬ç¨‹åºï¼'
 				exit()
-def checkpianotone():	#¼ì²é¸ÖÇÙÒôÊÇ·ñÓĞ¿Õ°×
+def checkpianotone():	#æ£€æŸ¥é’¢ç´éŸ³æ˜¯å¦æœ‰ç©ºç™½
 	checkvolume()
 	for i in range(0,len(pianotonedata)):
-		for j in range(0,len(pianotonedata[i])/3):
-			if not (pianotonedata[i][3*j]=='' and pianotonedata[i][3*j+1]=='' and pianotonedata[i][3*j+2]==''):
-				if (pianotonedata[i][3*j]=='' or pianotonedata[i][3*j+1]=='' or pianotonedata[i][3*j+2]==''):
-					print 'µÚ',i,'ĞĞµÚ',j,'¸ö¸ÖÇÙÒôÓĞÎÊÌâ£¬Çë¼ì²éºóÔÙÔËĞĞ±¾³ÌĞò£¡'
+		for j in range(0,len(pianotonedata[i])/4):
+			if not (pianotonedata[i][4*j]=='' and pianotonedata[i][4*j+1]=='' and pianotonedata[i][4*j+2]==''):
+				if (pianotonedata[i][4*j]=='' or pianotonedata[i][4*j+1]=='' or pianotonedata[i][4*j+2]==''):
+					print 'ç¬¬',i,'è¡Œç¬¬',j,'ä¸ªé’¢ç´éŸ³æœ‰é—®é¢˜ï¼Œè¯·æ£€æŸ¥åå†è¿è¡Œæœ¬ç¨‹åºï¼'
 					exit()
 
 def writejson():
 	jsondata={}
-	jsondata['speed']=speed	#Ö±½ÓĞ´ÈëËÙ¶ÈÖµ
+	jsondata['speed']=speed	#ç›´æ¥å†™å…¥é€Ÿåº¦å€¼
 	notes=[]
 	for i in range(0,len(notesdata)):
 		if sounds[i]!=[]:notes.insert(i,{'$id':str(i+1),'sounds':sounds[i],'pos':float(notesdata[i][1]),'size':float(notesdata[i][2]),'_time':float(notesdata[i][0])})
@@ -114,11 +120,8 @@ def writejson():
 	jsonfile.write(json.dumps(jsondata))
 	jsonfile.close()
 	
-#Ö÷³ÌĞò¿ªÊ¼
-if os.name=='nt':enter='\n'
-else:enter='\r\n'
-#Since this tool deals with Windows text files, it's necessary
-#to write this for proper processing in *nix.
+#ä¸»ç¨‹åºå¼€å§‹
+enter='\n'
 readdata()
 parsedata()
 checkpianotone()
