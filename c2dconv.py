@@ -5,19 +5,63 @@ import json
 import os
 import sys
 from decimal import *	#Use decimal instead of float to ensure precision
-def readdata(filename):
+def readandparse(filename):
 	global a
 	f=open(filename)
 	a=f.read()
+	f.close()
 	if a.endswith(enter):a=a[:-len(enter)]
 	a=a.split(enter)
-	if a[0]!='VERSION 2':
-		print 'Not a VERSION 2 Cytus chart, exiting'
-		raise IOError()
-	f.close()
-	
-def parsedata():
-	global notes,links
+	if a[0]=='VERSION 2':
+		print 'VERSION 2 notechart detected'
+		parsever2()
+	if a[0].startswith('NAME\t'):
+		print 'VERSION 1 notechart detected'
+		parsever1()
+	commonparse()
+
+def parsever1():
+	global notes,links,page_size
+	notes=[]
+	links=[]
+	flag=0
+	page_size=Decimal(a[6].split('\t')[2])
+	notesraw=[]
+	for i in range(0,len(a)):
+		if a[i].startswith('NOTE\t'):
+			flag=i
+			break
+	for i in range(flag,len(a)):
+		notesraw.insert(i,a[i].split('\t'))
+		notes.insert(i,[notesraw[i-flag][1],notesraw[i-flag][3],notesraw[i-flag][5],notesraw[i-flag][7]]) #Parse notes into my standard format
+	curnote=0
+	processed=[]
+	for i in range(0,len(a)-flag-1):
+		processed.insert(i,False)
+	while curnote<=(len(a)-flag-2):
+		processed[curnote]=True
+		if notesraw[curnote][6]!='-1': #Is in a link and not the end
+			print 'a',curnote
+			print notesraw[curnote][4]
+			if notesraw[curnote][4]=='1': #Is start of a link
+				print 'b',curnote
+				curlink=[curnote]
+				print curlink
+			else:
+				print 'c',curnote
+				curlink.insert(i,curnote)
+				print curlink
+		else: #Maybe end of a link, maybe not in a link
+			print 'd',curnote
+			if notesraw[curnote-1][6]!='-1': #Is end of a link
+				print 'e',curnote
+				curlink.insert(i,curnote)
+				print curlink
+				links.insert(i,curlink)
+		curnote+=1
+
+def parsever2():
+	global notes,links,page_size
 	notes=[]
 	links=[]
 	page_size=Decimal(a[3][10:])
@@ -28,6 +72,11 @@ def parsedata():
 	if not a[-1].startswith('LINK'):notenum=len(a)-5
 	links=a[notenum+5:]
 	for i in range(4,notenum+5):notes.insert(i,a[i].split('\t')[1:])
+	for i in range(0,len(links)):
+		links[i]=links[i][:-1]	#Remove ending space
+		links[i]=links[i].split(' ')[1:]	#Split & remove the word 'LINK'
+
+def commonparse():
 	for i in range(0,len(notes)):
 		for j in range(0,len(notes[i])):
 			notes[i][j]=Decimal(notes[i][j])	#Use decimal to ensure precision
@@ -36,11 +85,10 @@ def parsedata():
 		notes[i][2]=notes[i][2]*4-2	#Convert Cytus locations [0,1] to Deemo location [-2,2]
 		notes[i][3]=notes[i][3]/page_size*Decimal('1.1')+1	#Convert HOLD_LENGTH to size
 		#Due to the chart design, page_size is about 11/10 of a bar, so *1.1
-	for i in range(0,len(links)):
-		links[i]=links[i][:-1]	#Remove ending space
-		links[i]=links[i].split(' ')[1:]	#Split & remove the word 'LINK'
+
 
 def writejson(filename):
+	print 'Writing',filename
 	jsondata={}
 	notesjson=[]
 	linksjson=[]
@@ -74,13 +122,12 @@ for i in range(1,len(sys.argv)):
 	if infile[i-1].rfind('.')==-1:	#If the file is without extension
 		for i in range(1,len(sys.argv)):outfile.insert(i,sys.argv[i]+'_deemo')
 	else:	#If the file is with extension or path contains "."
-		if infile[i-1].rfind('.')>infile[i-1].rfind('\\'):	#If the "." is from file extension
+		if infile[i-1].rfind('.')>infile[i-1].rfind(os.path.sep):	#If the "." is from file extension
 			for i in range(1,len(sys.argv)):outfile.insert(i,sys.argv[i][:sys.argv[i].rfind('.')]+'_deemo.txt')
 		else:	#If the "." is from path
 			for i in range(1,len(sys.argv)):outfile.insert(i,sys.argv[i]+'_deemo')
-	try:
-		readdata(infile[i-1])
-		parsedata()
-		writejson(outfile[i-1])
-	except:
-		continue
+
+	print 'Processing',infile[i-1]
+	readandparse(infile[i-1])
+	writejson(outfile[i-1])
+
