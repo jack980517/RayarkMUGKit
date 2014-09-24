@@ -46,10 +46,10 @@ def parsetone():	#Convert character notation of notes into number, and write d, 
 			if not tone=='':pianotonedata[i][4*j+1]=int(tone)
 			tmp={}
 			d,p,v,w=pianotonedata[i][4*j:4*j+4]
-			if d!='':tmp['d']=d
-			if p!='':tmp['p']=p
-			if v!='':tmp['v']=v
-			if w!='':tmp['w']=w
+			if d!='':tmp['d']=float(d)
+			if p!='':tmp['p']=int(p)
+			if v!='':tmp['v']=float(v)
+			if w!='':tmp['w']=float(w)
 			if tmp!={}:soundsofanote.insert(i,tmp)
 		sounds.insert(i,soundsofanote)
 
