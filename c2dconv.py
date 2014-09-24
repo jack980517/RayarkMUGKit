@@ -4,20 +4,26 @@
 import json
 import os
 import sys
-from decimal import *	#Use decimal instead of float to ensure precision
-def readandparse(filename):
+from decimal import * #Use decimal instead of float to ensure precision
+
+def readdata(filename):
 	global a
 	f=open(filename)
 	a=f.read()
 	f.close()
 	if a.endswith(enter):a=a[:-len(enter)]
 	a=a.split(enter)
+	
+def parsedata():
 	if a[0]=='VERSION 2':
 		print 'VERSION 2 notechart detected'
 		parsever2()
-	if a[0].startswith('NAME\t'):
+	elif a[0].startswith('NAME\t'):
 		print 'VERSION 1 notechart detected'
 		parsever1()
+	else:
+		print 'Not a Cytus notechart!'
+		raise IOError()
 	commonparse()
 
 def parsever1():
@@ -34,6 +40,7 @@ def parsever1():
 	for i in range(flag,len(a)):
 		notesraw.insert(i,a[i].split('\t'))
 		notes.insert(i,[notesraw[i-flag][1],notesraw[i-flag][3],notesraw[i-flag][5],notesraw[i-flag][7]]) #Parse notes into my standard format
+	#Deal with links below
 	curnote=0
 	processed=[]
 	for i in range(0,len(a)-flag-1):
@@ -41,22 +48,13 @@ def parsever1():
 	while curnote<=(len(a)-flag-2):
 		processed[curnote]=True
 		if notesraw[curnote][6]!='-1': #Is in a link and not the end
-			print 'a',curnote
-			print notesraw[curnote][4]
 			if notesraw[curnote][4]=='1': #Is start of a link
-				print 'b',curnote
 				curlink=[curnote]
-				print curlink
 			else:
-				print 'c',curnote
 				curlink.insert(i,curnote)
-				print curlink
 		else: #Maybe end of a link, maybe not in a link
-			print 'd',curnote
 			if notesraw[curnote-1][6]!='-1': #Is end of a link
-				print 'e',curnote
 				curlink.insert(i,curnote)
-				print curlink
 				links.insert(i,curlink)
 		curnote+=1
 
@@ -106,6 +104,8 @@ def writejson(filename):
 	jsonfile=open(filename,'w')
 	jsonfile.write(json.dumps(jsondata))
 	jsonfile.close()
+
+
 	
 #Main program begins
 infile=[]
@@ -128,6 +128,9 @@ for i in range(1,len(sys.argv)):
 			for i in range(1,len(sys.argv)):outfile.insert(i,sys.argv[i]+'_deemo')
 
 	print 'Processing',infile[i-1]
-	readandparse(infile[i-1])
-	writejson(outfile[i-1])
-
+	try:
+		readdata(infile[i-1])
+		parsedata()
+		writejson(outfile[i-1])
+	except IOError:
+		continue
