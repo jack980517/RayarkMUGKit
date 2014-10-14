@@ -14,19 +14,11 @@ def writedata(filename):
 	page_size='%.6f'%Decimal(raw_input('Provide PAGE_SIZE value for %s: '%filename))
 	f=open(filename,'w')
 	f.write('VERSION 2%sBPM %s%sPAGE_SHIFT %s%sPAGE_SIZE %s%s'%(enter,bpm,enter,page_shift,enter,page_size,enter))
-	newlist=filter(lambda curnote:not((u'pos' not in curnote)or(curnote['pos']>2)or(u'_time' not in curnote)),a['notes'])
-	removed=filter(lambda curnote:(u'pos' not in curnote)or(curnote['pos']>2)or(u'_time' not in curnote),a['notes'])
-	g=open('removed.txt','w')
-	g.write(str(removed))
-	g.close()
-#	for curnote in newlist:
-#		flag=(not (u'pos' in curnote))or(u'pos' in curnote and curnote['pos']>2)or(not u'_time' in curnote.keys())
-#		if flag:
-#			newlist.remove(curnote) #Remove the note
-			#print curnote,'removed'
+	newlist=filter(lambda curnote:not((u'pos' in curnote and curnote['pos']>2)or(u'_time' not in curnote)),a['notes'])
+	for i in range(0,len(newlist)):
+		if (u'pos' not in newlist[i]):newlist[i][u'pos']=0
 	for i in range(0,len(newlist)):
 		curnote=newlist[i]
-		print curnote
 		f.write('NOTE\t%d\t%.6f\t%.6f\t%.6f%s'%(i,curnote['_time'],Decimal(curnote['pos'])/Decimal(4)+Decimal(0.5),0,enter))
 	for i in range(0,len(a['links'])):
 		curlink=a['links'][i]['notes']
