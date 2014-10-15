@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 # cspdchanger.py: Changes the speed of Cytus notecharts.
+# Usage: cspdchanger.py {NOTECHART_FILE_PATH}
 import json
 import os
 import sys

@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-# maker.py: The Deemo notechart maker. Accepts data from time.txt and write the json notechart.
+# maker.py: The Deemo notechart maker. Accepts data from time.csv and write the json notechart.
 
 import json
 import os

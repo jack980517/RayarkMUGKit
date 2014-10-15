@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 # c2dconv.py: Converts Cytus notecharts to Deemo notecharts.
-
+# Usage: c2dconv.py {NOTECHART_FILE_PATH}
 import json
 import os
 import sys

@@ -1,4 +1,6 @@
 #!/usr/bin/env python2
+# d2cconv.py: Converts Deemo notecharts to Cytus notecharts.
+# Usage: d2cconv.py {NOTECHART_FILE_PATH}
 import json
 import sys
 import os

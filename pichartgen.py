@@ -16,6 +16,6 @@ for i in range(0,len(pi)):
 jsondata={}
 jsondata['notes']=notes
 jsondata['speed']=10
-f=open('pi_miku_10238.txt','w')
+f=open('pi_deemo.txt','w')
 f.write(json.dumps(jsondata))
 f.close()

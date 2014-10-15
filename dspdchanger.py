@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 # dspdchanger.py: Changes the speed of Deemo notecharts.
+# Usage: dspdchanger.py {NOTECHART_FILE_PATH}
 import json
 import os
 import sys
@@ -16,7 +17,8 @@ def parseandwrite(filename):
 	f=open(filename,'w')
 	print 'Parsing',filename
 	for i in range(0,len(a['notes'])):
-		a['notes'][i]['_time']=float(Decimal(a['notes'][i]['_time'])/multiplier)
+		if a['notes'][i].has_key('_time'):
+			a['notes'][i]['_time']=float(Decimal(a['notes'][i]['_time'])/multiplier)
 		if a['notes'][i].has_key('sounds'):
 			for j in range(0,len(a['notes'][i]['sounds'])):
 				if a['notes'][i]['sounds'][j].has_key('d'):
