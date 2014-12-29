@@ -125,8 +125,7 @@ def writejson(filename):
 #Main program starts	
 infile=[]
 outfile=[]
-if os.name=='nt':enter='\n'
-else:enter='\r\n'
+enter='\n'
 if len(sys.argv)==1:
 	infile=['table.txt']
 	outfile=['chart.txt']
