@@ -6,6 +6,7 @@ song=os.sys.argv[2]
 if os.path.exists('%s/%s.hard.csv'%(filename,filename)):
 	f=open('%s/%s.hard.csv'%(filename,filename))
 	a=f.read().split('\n')
+	a=a[:-1]
 	f.close()
 	f=open('%s/%s.hard.txt'%(filename,filename),'w')
 	for i in range(0,len(a)):
